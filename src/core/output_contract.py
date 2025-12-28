@@ -27,20 +27,20 @@ class TranslationOutputContract:
     # Markers that indicate where translated content STARTS
     # These are model-independent patterns that signal "instructions end, output begins"
     CONTENT_START_MARKERS = [
-        # Explicit translation start markers
+        # Explicit translation start markers (ONLY these)
         'translation:',
         'translated content:',
         'here is the translation:',
         'below is the translation:',
-
-        # Markdown document start (strong signal)
-        '# ',
 
         # Chinese markers
         '翻译如下：',
         '翻译结果：',
         '以下是翻译：',
     ]
+
+    # ⚠️ DO NOT include '# ' (markdown headers) as markers!
+    # Headers are legitimate content, not instruction boundaries.
 
     # Patterns that indicate content is NOT translated content
     # These are model-independent and safe to remove
@@ -190,19 +190,33 @@ class TranslationOutputContract:
         - Only examines first 50 lines
         - Stops at first content-like line
         - Only removes lines matching instruction patterns
+
+        ⚠️ SAFETY: Prefer false negatives (keep instruction echo)
+        over false positives (remove legitimate content).
         """
         lines = text.split('\n')
 
         # Only check first 50 lines for instruction echo
         scan_limit = min(50, len(lines))
         content_start_idx = 0
+        consecutive_instruction_lines = 0
 
         for i in range(scan_limit):
             line = lines[i].strip()
 
-            # Empty line - keep going
+            # Empty line - reset counter and keep going
             if not line:
-                content_start_idx = i + 1
+                # If we've seen instruction lines, this might be the boundary
+                if consecutive_instruction_lines > 0:
+                    # Check if next non-empty line looks like content
+                    for j in range(i + 1, min(i + 3, len(lines))):
+                        if lines[j].strip():
+                            next_line = lines[j].strip()
+                            # If next line is clearly content, stop here
+                            if next_line.startswith('#') or len(next_line) > 80:
+                                content_start_idx = i + 1
+                                break
+                    break
                 continue
 
             # Check if this line is instruction/prompt text
@@ -214,31 +228,47 @@ class TranslationOutputContract:
             if is_instruction:
                 # This is still instruction, skip it
                 content_start_idx = i + 1
+                consecutive_instruction_lines += 1
                 continue
 
             # Check if this looks like actual content
-            # Content indicators:
+            # Content indicators (conservative check):
             # - Starts with Markdown header (# ## ###)
-            # - Is long (> 50 chars)
+            # - Is reasonably long (> 30 chars, was 50)
             # - Contains markdown patterns (```, **, *, [, etc.)
+            # - Is NOT a short numbered list item
             looks_like_content = (
                 line.startswith('#') or
-                len(line) > 50 or
-                any(marker in line for marker in ['```', '**', '*', '[', ']'])
+                len(line) > 30 or  # Relaxed from 50 to 30
+                (any(marker in line for marker in ['```', '**', '*', '[', ']']) and len(line) > 20)
             )
 
-            if looks_like_content:
+            # Additional check: short numbered lists might be reasoning
+            is_numbered_list = (
+                line and
+                line[0].isdigit() and
+                (line[1] == '.' or line[1:3] == '. ')
+            )
+
+            if looks_like_content and not is_numbered_list:
                 # Found content, stop here
                 break
 
-            # Short line without content markers - probably still instruction
-            content_start_idx = i + 1
+            # If we've seen multiple consecutive instruction-like lines,
+            # and this line doesn't look like content, keep skipping
+            if consecutive_instruction_lines >= 2:
+                content_start_idx = i + 1
+                continue
+
+            # Otherwise, be conservative and assume this is content
+            break
 
         # Extract from content start
         if content_start_idx > 0:
             result = '\n'.join(lines[content_start_idx:]).strip()
-            if len(result) > 20:  # Only if substantial content remains
-                logger.info(f"Removed {content_start_idx} lines of instruction echo from start")
+            removed_count = content_start_idx
+            if len(result) > 20 and removed_count < 20:  # Only if substantial content remains and not too many lines removed
+                logger.info(f"Removed {removed_count} lines of instruction echo from start")
                 return result, True
 
         return text, False
@@ -249,15 +279,22 @@ class TranslationOutputContract:
         Extract content starting from an explicit content start marker.
 
         This is safe because markers are explicit and unambiguous.
+        Markers MUST be instruction-delimiter patterns, NOT legitimate content.
+
+        ⚠️ SAFETY: Only use markers that are UNIQUE to instruction text.
+        Never use markdown patterns (like '# ') as they are valid content.
         """
         lines = text.split('\n')
 
         for i, line in enumerate(lines):
-            line_lower = line.strip().lower()
+            line_stripped = line.strip()
+            line_lower = line_stripped.lower()
 
             # Check if this line contains a content start marker
             for marker in cls.CONTENT_START_MARKERS:
-                if marker in line_lower:
+                # Match must be at the START of the line (not in the middle)
+                # This prevents false positives on legitimate content
+                if line_lower.startswith(marker.lower()):
                     # Extract everything AFTER this line
                     # Skip the marker line itself + 1 empty line
                     result_start = i + 1
@@ -268,8 +305,11 @@ class TranslationOutputContract:
 
                     if result_start < len(lines):
                         result = '\n'.join(lines[result_start:]).strip()
+
+                        # Only extract if substantial content remains
                         if len(result) > 20:
-                            logger.info(f"Extracted content from marker '{marker}' at line {i}")
+                            logger.info(f"Extracted content from marker '{marker}' at line {i}, "
+                                       f"skipping {result_start - i} lines")
                             return result, marker
 
         return text, None
