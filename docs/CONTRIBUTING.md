@@ -29,7 +29,7 @@
 - 确保所有测试通过
 
 ### 新增翻译服务商
-请参考 [新增服务商指南](docs/新增翻译服务商指南.md)。
+请参考 [新增翻译服务商指南](docs/新增翻译服务商指南.md)。
 
 ## 代码审查
 
@@ -50,7 +50,7 @@
 
 ## 获取帮助
 
-- 查看 [文档](docs/)
+- 查看 [文档](docs)
 - 在 [Discussions](https://github.com/myuanzhang/glossaryflow/discussions) 中提问
 - 查看 [已有 Issues](https://github.com/myuanzhang/glossaryflow/issues)
 
@@ -83,7 +83,3 @@ npm test
 ## 许可证
 
 通过贡献代码，您同意您的贡献将使用与项目相同的 MIT 许可证。
-
----
-
-再次感谢您的贡献！

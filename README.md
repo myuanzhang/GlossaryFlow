@@ -29,8 +29,8 @@
 
 1. **克隆项目**
 ```bash
-git clone https://github.com/myuanzhang/glossaryflow.git
-cd glossaryflow
+git clone https://github.com/myuanzhang/GlossaryFlow.git
+cd GlossaryFlow
 ```
 
 2. **后端设置**
@@ -158,14 +158,14 @@ python translate.py input.md output.md --provider qwen --glossary data/glossary.
 ### 支持的翻译服务商
 
 | Provider | 模型示例 | 说明 |
-|----------|---------|------|
-| OpenAI | GPT-4, GPT-3.5 | 需要海外 API Key |
-| DeepSeek | deepseek-chat, deepseek-reasoner | 性价比高，支持推理模型 |
-| Mimo | mimo-v2-flash | 专业翻译模型 |
-| 通义千问 | qwen-mt-flash, qwen3-max | 阿里云服务 |
+|----------|---------|:-----|
+| OpenAI | GPT-4, GPT-3.5 |  |
+| DeepSeek | deepseek-chat, deepseek-reasoner |  |
+| Mimo | mimo-v2-flash |  |
+| Qwen | qwen-mt-flash, qwen3-max |  |
 | Ollama | llama2, mistral | 本地部署 |
 
-🤖支持自定义大语言模型厂商，集成新的 LLM 服务请参考[新增服务商指南](docs/新增翻译服务商指南.md)。
+🤖支持自定义所需大语言模型，集成新的 LLM 服务请参考[新增翻译服务商指南](docs/新增翻译服务商指南.md)。
 
 ### 环境变量配置
 
