@@ -3,6 +3,12 @@ Translation Output Contract
 
 This module defines a model-agnostic contract for translation output.
 It ensures that ALL models (cloud, local, reasoning, chat) produce clean output.
+
+FORCED OUTPUT CONSTRAINTS (non-negotiable):
+- Output MUST be pure Markdown content only
+- NO instruction text, task descriptions, or glossary sections
+- NO "CRITICAL", "IMPORTANT", "REQUIREMENTS" sections
+- MUST start with first Markdown heading or paragraph
 """
 
 import re
@@ -15,25 +21,71 @@ logger = logging.getLogger(__name__)
 
 class TranslationOutputContract:
     """
-    Model-agnostic translation output contract.
+    Model-agnostic translation output contract with ENFORCED constraints.
 
-    Guarantees:
-    1. No prompt/instruction text in output
-    2. No truncation of translated content
-    3. Deterministic, reproducible cleaning
-    4. Safe for all model types
+    This is NOT a request to models - it's a post-processing enforcement layer.
+    All model outputs are filtered through this contract before being returned.
     """
 
-    # Markers that indicate where translated content STARTS
-    # These are model-independent patterns that signal "instructions end, output begins"
+    # ========== FORCED OUTPUT RULES ==========
+
+    # Patterns that MUST be removed (instruction/task artifacts)
+    FORCED_REMOVAL_PATTERNS = [
+        # Task/Instruction sections
+        r'IMPORTANT REQUIREMENTS?:*.*?(?=\n\n|\n#|$)',
+        r'CRITICAL OUTPUT REQUIREMENTS?:*.*?(?=\n\n|\n#|$)',
+        r'TRANSLATION TASK START.*?TRANSLATION TASK END',
+        r'===TRANSLATION.*?===',
+        r'===OUTPUT.*?===',
+        r'===DOCUMENT.*?===',
+
+        # Glossary/Terminology sections
+        r'(Glossary|TERMINOLOGY|术语表):.*?(?=\n\n|\n#|$)',
+        r'Use these translations for specific terms:.*?(?=\n\n|\n#|$)',
+        r'- .*?: .*?(?=\n|$)',  # Glossary entries like "- 中文: English"
+
+        # Directives
+        r'You (MUST|MUST NOT|DO NOT|SHOULD).*?(?=\n\n|\n#|$)',
+        r'(Remember|Note|Note that):.*?(?=\n\n|\n#|$)',
+
+        # Task descriptions
+        r'Translate the following.*?(?=\n\n|\n#|$)',
+        r'You are a professional translator.*?(?=\n\n|\n#|$)',
+    ]
+
+    # ========== CONTENT START DETECTION ==========
+
+    # Patterns that indicate the START of actual translation content
+    VALID_CONTENT_START_PATTERNS = [
+        r'^# ',           # Markdown header level 1
+        r'^## ',          # Markdown header level 2
+        r'^### ',         # Markdown header level 3
+        r'^\* ',          # Bullet point
+        r'^- ',           # Dash list
+        r'^\d+\. ',       # Numbered list
+        r'^```',          # Code block start
+    ]
+
+    # Patterns that indicate NON-CONTENT (should be skipped)
+    SKIP_PATTERNS = [
+        r'IMPORTANT',
+        r'CRITICAL',
+        r'REQUIREMENTS',
+        r'TRANSLATION TASK',
+        r'Glossary:',
+        r'TERMINOLOGY:',
+        r'You are',
+        r'Translate the',
+        r'=',
+        r'===',
+    ]
+
+    # Legacy markers (for backward compatibility)
     CONTENT_START_MARKERS = [
-        # Explicit translation start markers (ONLY these)
         'translation:',
         'translated content:',
         'here is the translation:',
         'below is the translation:',
-
-        # Chinese markers
         '翻译如下：',
         '翻译结果：',
         '以下是翻译：',
@@ -43,7 +95,6 @@ class TranslationOutputContract:
     # Headers are legitimate content, not instruction boundaries.
 
     # Patterns that indicate content is NOT translated content
-    # These are model-independent and safe to remove
     NON_CONTENT_PATTERNS = [
         # Prompt/instruction text (unique phrases unlikely in valid translation)
         'you are a professional translator',
@@ -87,7 +138,7 @@ class TranslationOutputContract:
         Parse and clean model output according to the contract.
 
         This is the ONLY method that should be used to clean model output.
-        It is deterministic, model-agnostic, and safe for all model types.
+        It is deterministic, model-agnostic, and enforces output constraints.
 
         Args:
             raw_output: Raw output from the model
@@ -107,28 +158,32 @@ class TranslationOutputContract:
             "removed_prefix": None,
             "removed_suffix": None,
             "has_chinese": False,
-            "validation_errors": []
+            "validation_errors": [],
+            "forced_removal Applied": False
         }
 
-        # Step 1: Remove known prefix patterns (deterministic, safe)
-        cleaned = cls._remove_prefix_patterns(raw_output)
+        # ========== NEW: ENFORCED CLEANING (Step 0) ==========
+        # Apply forced removal patterns FIRST - these are non-negotiable
+        cleaned = cls._apply_forced_removal(raw_output)
         if cleaned != raw_output:
-            metadata["removed_prefix"] = "pattern_match"
-            logger.info(f"Removed prefix pattern: {len(raw_output) - len(cleaned)} chars")
+            metadata["forced_removal_applied"] = True
+            logger.info(f"Forced removal applied: {len(raw_output) - len(cleaned)} chars removed")
+
+        # Step 1: Remove known prefix patterns (deterministic, safe)
+        cleaned = cls._remove_prefix_patterns(cleaned)
+        if cleaned != raw_output:
+            if not metadata.get("removed_prefix"):
+                metadata["removed_prefix"] = "pattern_match"
 
         # Step 2: Remove thinking/reasoning tags if present (safe)
         cleaned = cls._remove_thinking_tags(cleaned)
-        if len(cleaned) < original_length * 0.9:  # Only log if significant removal
-            logger.info(f"Removed thinking tags: {len(raw_output) - len(cleaned)} chars")
 
         # Step 3: Detect and remove instruction echo at the START (safe, bounded)
-        # Only look at first 50 lines - prevents false positives on long content
         cleaned, removed_intro = cls._remove_instruction_echo_at_start(cleaned)
         if removed_intro:
             metadata["removed_prefix"] = "instruction_echo"
 
         # Step 4: Find and extract actual content start (safe, explicit)
-        # Look for explicit content start markers
         cleaned, start_marker = cls._extract_from_start_marker(cleaned)
         if start_marker:
             metadata["removed_prefix"] = f"marker:{start_marker}"
@@ -137,6 +192,13 @@ class TranslationOutputContract:
         # Step 5: Remove any remaining single-line prompt artifacts (safe)
         cleaned = cls._remove_prompt_artifacts(cleaned)
 
+        # ========== NEW: ENFORCE CONTENT START ==========
+        # Ensure output starts with valid Markdown content
+        cleaned, content_start_detected = cls._enforce_content_start(cleaned)
+        if not content_start_detected:
+            logger.error("No valid Markdown content start detected - output may be invalid")
+            metadata["validation_errors"].append("no_valid_content_start")
+
         # Step 6: Final validation (non-destructive)
         metadata["cleaned_length"] = len(cleaned)
 
@@ -144,12 +206,16 @@ class TranslationOutputContract:
         chinese_count = sum(1 for c in cleaned if '\u4e00' <= c <= '\u9fff')
         metadata["has_chinese"] = chinese_count > 0
 
-        # Validate: if cleaning removed too much, use original
-        if len(cleaned) < original_length * 0.3:
+        # Validate: if cleaning removed too much AND no forced removal was applied, use original
+        # But if forced removal was applied, accept the cleaned result even if much was removed
+        if not metadata.get("forced_removal_applied") and len(cleaned) < original_length * 0.3:
             logger.warning(f"Cleaning removed too much content ({len(cleaned)}/{original_length}), using original with minimal cleanup")
             metadata["validation_errors"].append("over_aggressive_cleaning")
             cleaned = cls._minimal_cleanup(raw_output)
             metadata["cleaned_length"] = len(cleaned)
+        elif metadata.get("forced_removal_applied") and len(cleaned) < original_length * 0.3:
+            # Forced removal was applied - this is expected and OK
+            logger.info(f"Forced removal removed significant content ({len(cleaned)}/{original_length}), this is acceptable")
 
         if len(cleaned) == 0:
             metadata["status"] = "empty"
@@ -158,6 +224,187 @@ class TranslationOutputContract:
             metadata["status"] = "cleaned"
 
         return cleaned, metadata
+
+    @classmethod
+    def _apply_forced_removal(cls, text: str) -> str:
+        """
+        Apply FORCED removal patterns - these are non-negotiable.
+
+        This removes:
+        - CRITICAL/IMPORTANT sections (entire blocks until next header)
+        - Glossary/Terminology sections (entire blocks until next header)
+        - Directive lines (MUST, DO NOT, etc.)
+        - Glossary entry lines
+
+        Returns:
+            Text with all forced patterns removed
+        """
+        if not text:
+            return text
+
+        lines = text.split('\n')
+        cleaned_lines = []
+        skip_until_next_header = False
+        skip_count = 0
+
+        for i, line in enumerate(lines):
+            stripped = line.strip()
+
+            if not stripped:
+                if not skip_until_next_header:
+                    cleaned_lines.append(line)
+                continue
+
+            # Check if this is a section we want to skip
+            line_lower = stripped.lower()
+
+            # Detect start of sections to remove (entire blocks)
+            if any(pattern in line_lower for pattern in [
+                'critical output requirements',
+                'important requirements',
+                'translation task start',
+                'translation task end',
+                'glossary:',
+                'terminology:',
+                '术语表',
+                'use these translations for specific terms',
+            ]):
+                skip_until_next_header = True
+                skip_count = 0
+                logger.info(f"Forced removal: Starting skip at line {i}: {stripped[:50]}")
+                continue
+
+            # If we're in skip mode
+            if skip_until_next_header:
+                skip_count += 1
+
+                # Check if we've hit the next header (content boundary)
+                if stripped.startswith('#'):
+                    # Found next section - stop skipping
+                    skip_until_next_header = False
+                    logger.info(f"Forced removal: Stopped skip at line {i} (skipped {skip_count} lines), found header: {stripped[:50]}")
+                    cleaned_lines.append(line)
+
+                # Check if we've skipped too many lines (> 20 lines without finding a header)
+                elif skip_count > 20:
+                    # Something's wrong, stop skipping
+                    skip_until_next_header = False
+                    logger.warning(f"Forced removal: Skipped {skip_count} lines without finding header, stopping skip")
+                    cleaned_lines.append(line)
+
+                # Otherwise, skip this line (it's part of the section to remove)
+                continue
+
+            # Remove directive lines (single-line directives)
+            # Check for directive patterns at the START of the line
+            directive_starts = [
+                'you must',
+                'you must not',
+                'you should',
+                'do not',
+                'remember',
+                'note that',
+                'translate the following',
+                'you are a professional translator',
+            ]
+
+            if any(line_lower.startswith(pattern) for pattern in directive_starts):
+                logger.info(f"Forced removal: Removing directive line {i}: {stripped[:50]}")
+                continue
+
+            # Remove glossary entry lines (- key: value pattern)
+            if stripped.startswith('- ') and ': ' in stripped:
+                # Check if it looks like a glossary entry
+                # Pattern: "- 中文: English" or "- Term: Definition"
+                after_dash = stripped[2:].strip()
+                if len(after_dash) < 100:  # Glossary entries are usually short
+                    logger.info(f"Forced removal: Removing glossary-like line {i}: {stripped[:50]}")
+                    continue
+
+            # Keep this line
+            cleaned_lines.append(line)
+
+        result = '\n'.join(cleaned_lines)
+
+        # Clean up extra whitespace
+        result = cls._clean_whitespace(result)
+
+        return result
+
+    @classmethod
+    def _enforce_content_start(cls, text: str) -> Tuple[str, bool]:
+        """
+        Enforce that output starts with valid Markdown content.
+
+        Skips any non-content lines at the start until finding:
+        - Markdown header (# ## ###)
+        - List item (- * digit.)
+        - Code block (```)
+        - Or any substantial text (> 40 chars)
+
+        Returns:
+            (cleaned_text, content_detected)
+        """
+        if not text:
+            return text, False
+
+        lines = text.split('\n')
+        content_start_idx = -1
+
+        for i, line in enumerate(lines[:50]):  # Only check first 50 lines
+            stripped = line.strip()
+
+            if not stripped:
+                continue
+
+            # Check if this line matches a skip pattern
+            should_skip = any(
+                re.search(pattern, stripped, re.IGNORECASE)
+                for pattern in cls.SKIP_PATTERNS
+            )
+
+            if should_skip:
+                continue
+
+            # Check if this looks like valid content start
+            is_valid_start = any(
+                re.match(pattern, stripped, re.IGNORECASE)
+                for pattern in cls.VALID_CONTENT_START_PATTERNS
+            )
+
+            # Also accept any substantial text as content
+            is_substantial = len(stripped) > 40
+
+            if is_valid_start or is_substantial:
+                content_start_idx = i
+                break
+
+        if content_start_idx >= 0:
+            # Extract from content start
+            result = '\n'.join(lines[content_start_idx:]).strip()
+            return result, True
+
+        # No valid content start detected
+        return text, False
+
+    @classmethod
+    def _clean_whitespace(cls, text: str) -> str:
+        """Clean up excessive whitespace from pattern removals."""
+        lines = text.split('\n')
+        cleaned = []
+
+        prev_empty = False
+        for line in lines:
+            is_empty = not line.strip()
+
+            # Skip multiple consecutive empty lines
+            if is_empty and prev_empty:
+                continue
+
+            cleaned.append(line)
+            prev_empty = is_empty
+
+        return '\n'.join(cleaned).strip()
 
     @classmethod
     def _remove_prefix_patterns(cls, text: str) -> str:
