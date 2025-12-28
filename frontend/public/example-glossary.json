@@ -1,0 +1,12 @@
+{
+  "火山引擎": "BytePlus",
+  "云服务器": "Elastic Cloud Server",
+  "对象存储": "Object Storage Service",
+  "内容分发网络": "Content Delivery Network",
+  "负载均衡器": "Load Balancer",
+  "虚拟私有云": "Virtual Private Cloud",
+  "安全组": "Security Group",
+  "弹性公网IP": "Elastic IP",
+  "数据库": "Relational Database Service",
+  "密钥管理": "Key Management Service"
+}

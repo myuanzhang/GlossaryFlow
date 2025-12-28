@@ -1,0 +1,84 @@
+/* GlossaryUpload Component Styles */
+
+.glossary-upload {
+  width: 100%;
+}
+
+/* 使用 Ant Design Upload.Dragger 的默认样式，只调整细节 */
+.glossary-upload .ant-upload-drag {
+  background: #fafafa !important;
+}
+
+.glossary-upload .ant-upload-drag:hover {
+  border-color: #40a9ff !important;
+}
+
+.glossary-upload .ant-upload-drag-icon {
+  color: #1890ff !important;
+}
+
+.glossary-upload .ant-upload-drag-text {
+  font-size: 16px !important;
+  font-weight: 500 !important;
+  color: #333 !important;
+  margin-bottom: 8px !important;
+}
+
+.glossary-upload .ant-upload-drag-hint {
+  font-size: 14px !important;
+  color: #666 !important;
+}
+
+.glossary-upload-info {
+  background: #f6ffed;
+  border: 1px solid #b7eb8f;
+  border-radius: 8px;
+  padding: 12px 16px;
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.glossary-upload-info .glossary-file-name {
+  font-weight: 500;
+  color: #333;
+}
+
+.glossary-upload-info .glossary-term-count {
+  color: #52c41a;
+  font-weight: 500;
+}
+
+/* Optional indicator styling */
+.glossary-upload .optional-hint {
+  color: #999;
+  font-size: 12px  /* Smaller text for optional features */
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .glossary-upload .ant-upload-drag {
+    padding: 16px !important;
+  }
+
+  .glossary-upload .ant-upload-drag-icon {
+    font-size: 36px !important;
+  }
+
+  .glossary-upload .ant-upload-drag-text {
+    font-size: 14px !important;
+  }
+
+  .glossary-upload .ant-upload-drag-hint {
+    font-size: 12px !important;
+  }
+}

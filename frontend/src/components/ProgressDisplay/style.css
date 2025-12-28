@@ -1,0 +1,142 @@
+/**
+ * ProgressDisplay Component Styles
+ */
+
+.progress-display {
+  background: #fff;
+  border: 1px solid #d9d9d9;
+  border-radius: 8px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.progress-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.progress-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.progress-bar {
+  margin: 0;
+}
+
+.progress-details {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+}
+
+.phase-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.phase-info .anticon {
+  color: #1890ff;
+}
+
+.progress-percentage {
+  color: #8c8c8c;
+  font-weight: 500;
+}
+
+.progress-warnings {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.completion-info {
+  margin-top: 8px;
+}
+
+.completion-info .ant-alert-description p {
+  margin-bottom: 4px;
+}
+
+.completion-info .ant-alert-description p:last-child {
+  margin-bottom: 0;
+}
+
+.error-info {
+  margin-top: 8px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .progress-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .progress-details {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .phase-info {
+    align-self: flex-start;
+  }
+}
+
+/* Animation for progress changes */
+.progress-bar .ant-progress-bg {
+  transition: width 0.3s ease-in-out;
+}
+
+/* Status indicators */
+.ant-progress-status-success .ant-progress-bg {
+  background-color: #52c41a;
+}
+
+.ant-progress-status-exception .ant-progress-bg {
+  background-color: #ff4d4f;
+}
+
+/* Custom phase icons styling */
+.phase-info .anticon.loading {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Warning items styling */
+.progress-warnings .ant-alert {
+  border-left: 4px solid #faad14;
+}
+
+.progress-warnings .ant-alert-warning {
+  background-color: #fffbe6;
+  border-color: #ffe58f;
+}
+
+/* Completion info styling */
+.completion-info .ant-alert-success {
+  background-color: #f6ffed;
+  border-color: #b7eb8f;
+}
+
+.completion-info .ant-alert-success .anticon {
+  color: #52c41a;
+}

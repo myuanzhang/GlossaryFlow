@@ -1,0 +1,101 @@
+/**
+ * FileUpload Component Styles
+ */
+
+.file-upload {
+  margin-bottom: 24px;
+}
+
+.file-upload-label {
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #262626;
+}
+
+.optional-text {
+  color: #8c8c8c;
+  font-weight: normal;
+  font-size: 12px;
+  margin-left: 4px;
+}
+
+.file-upload-dragger {
+  border: 2px dashed #d9d9d9 !important;
+  border-radius: 8px !important;
+  background: #fafafa !important;
+  transition: all 0.3s ease;
+}
+
+.file-upload-dragger:hover {
+  border-color: #4096ff !important;
+  background: #f0f8ff !important;
+}
+
+.ant-upload-drag-icon {
+  color: #4096ff;
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.ant-upload-text {
+  font-size: 16px;
+  font-weight: 500;
+  color: #262626;
+  margin-bottom: 8px;
+}
+
+.ant-upload-hint {
+  font-size: 14px;
+  color: #8c8c8c;
+}
+
+.file-upload-info {
+  margin-top: 16px;
+  padding: 12px;
+  background: #f5f5f5;
+  border-radius: 6px;
+  border-left: 4px solid #4096ff;
+}
+
+.file-info-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 4px;
+  font-size: 14px;
+}
+
+.file-info-item:last-child {
+  margin-bottom: 0;
+}
+
+.file-info-label {
+  font-weight: 500;
+  color: #595959;
+  margin-right: 8px;
+  min-width: 80px;
+}
+
+.file-info-value {
+  color: #262626;
+  word-break: break-all;
+}
+
+/* Success state */
+.file-upload-dragger.upload-success {
+  border-color: #52c41a !important;
+  background: #f6ffed !important;
+}
+
+.file-upload-dragger.upload-success .ant-upload-drag-icon {
+  color: #52c41a;
+}
+
+/* Error state */
+.file-upload-dragger.upload-error {
+  border-color: #ff4d4f !important;
+  background: #fff2f0 !important;
+}
+
+.file-upload-dragger.upload-error .ant-upload-drag-icon {
+  color: #ff4d4f;
+}

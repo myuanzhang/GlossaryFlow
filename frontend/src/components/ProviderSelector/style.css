@@ -1,0 +1,181 @@
+/**
+ * ProviderSelector Component Styles
+ */
+
+.provider-selector {
+  margin-bottom: 24px;
+}
+
+.provider-card {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.provider-card .ant-card-head {
+  border-bottom: 1px solid #f0f0f0;
+  background: #fafafa;
+}
+
+.provider-card .ant-card-head-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+}
+
+.provider-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.provider-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.section-label h5 {
+  margin: 0;
+  color: #262626;
+  font-weight: 500;
+}
+
+.provider-select,
+.model-select {
+  width: 100%;
+}
+
+.provider-select .ant-select-selector,
+.model-select .ant-select-selector {
+  border-radius: 6px;
+}
+
+.provider-name {
+  font-weight: 500;
+  color: #262626;
+}
+
+.provider-description {
+  margin-top: 2px;
+}
+
+.provider-status {
+  margin-top: 2px;
+}
+
+.provider-status-info {
+  margin-top: 8px;
+}
+
+.provider-status-info .ant-alert {
+  border-radius: 6px;
+}
+
+.system-health {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #f0f0f0;
+  text-align: center;
+}
+
+/* Disabled state styles */
+.ant-select-disabled .ant-select-selector {
+  background-color: #f5f5f5;
+  color: #bfbfbf;
+  cursor: not-allowed;
+}
+
+/* Option hover styles */
+.ant-select-item-option-disabled {
+  color: #bfbfbf;
+  cursor: not-allowed;
+}
+
+.ant-select-item-option-disabled:hover {
+  background-color: transparent;
+}
+
+/* Status indicator animations */
+.anticon-check-circle {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.anticon-exclamation-circle {
+  animation: shake 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-2px); }
+  75% { transform: translateX(2px); }
+}
+
+/* Provider tag colors */
+.ant-tag {
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .provider-option {
+    padding: 8px 0;
+  }
+
+  .provider-description,
+  .provider-status {
+    margin-top: 4px;
+  }
+
+  .system-health {
+    text-align: left;
+  }
+}
+
+/* Loading state */
+.provider-select.ant-select-loading .ant-select-selector,
+.model-select.ant-select-loading .ant-select-selector {
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+/* Focus states */
+.provider-select.ant-select-focused .ant-select-selector,
+.model-select.ant-select-focused .ant-select-selector {
+  border-color: #4096ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .provider-card {
+    background-color: #141414;
+    border-color: #434343;
+  }
+
+  .provider-card .ant-card-head {
+    background-color: #1f1f1f;
+    border-bottom-color: #434343;
+  }
+
+  .section-label h5 {
+    color: #fff;
+  }
+
+  .provider-name {
+    color: #fff;
+  }
+
+  .system-health {
+    border-top-color: #434343;
+  }
+}

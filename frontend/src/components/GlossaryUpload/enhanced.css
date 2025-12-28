@@ -1,0 +1,194 @@
+/**
+ * Enhanced GlossaryUpload Component Styles
+ * Modern design with improved visual feedback
+ */
+
+.glossary-upload {
+  width: 100%;
+  animation: scaleIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Enhanced Dragger Styling */
+.glossary-upload .ant-upload-drag {
+  background: linear-gradient(145deg, #fafafa 0%, #f5f5f5 100%) !important;
+  border: 2px dashed #d9d9d9 !important;
+  border-radius: 12px !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Gradient overlay on hover */
+.glossary-upload .ant-upload-drag::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.03) 0%, rgba(118, 75, 162, 0.03) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.glossary-upload .ant-upload-drag:hover {
+  border-color: #667eea !important;
+  background: linear-gradient(145deg, #f0f7ff 0%, #e8f0ff 100%) !important;
+  transform: scale(1.01);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+}
+
+.glossary-upload .ant-upload-drag:hover::before {
+  opacity: 1;
+}
+
+.glossary-upload .ant-upload-drag-icon {
+  color: #667eea !important;
+  font-size: 56px !important;
+  margin-bottom: 20px !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  filter: drop-shadow(0 2px 4px rgba(102, 126, 234, 0.2));
+}
+
+.glossary-upload .ant-upload-drag:hover .ant-upload-drag-icon {
+  transform: scale(1.1) rotate(5deg);
+  color: #764ba2 !important;
+}
+
+.glossary-upload .ant-upload-text {
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  color: #262626 !important;
+  margin-bottom: 12px !important;
+  transition: color 0.3s ease;
+}
+
+.glossary-upload .ant-upload-drag:hover .ant-upload-text {
+  color: #667eea !important;
+}
+
+.glossary-upload .ant-upload-hint {
+  font-size: 14px !important;
+  color: #8c8c8c !important;
+  line-height: 1.6;
+}
+
+/* Enhanced Info Display */
+.glossary-upload-info {
+  background: linear-gradient(135deg, #f6ffed 0%, #f0ffe8 100%);
+  border: 1px solid #b7eb8f;
+  border-radius: 12px;
+  padding: 16px 20px;
+  animation: slideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(82, 196, 26, 0.15);
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.glossary-upload-info .glossary-file-name {
+  font-weight: 600;
+  color: #262626;
+  font-size: 15px;
+}
+
+.glossary-upload-info .glossary-term-count {
+  color: #52c41a;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+/* Enhanced Tags */
+.glossary-upload .ant-tag {
+  border-radius: 8px !important;
+  padding: 6px 14px !important;
+  font-weight: 500 !important;
+  font-size: 13px !important;
+  border: 1px solid currentColor !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.glossary-upload .ant-tag:hover {
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+/* Optional indicator styling */
+.glossary-upload .optional-hint {
+  color: #8c8c8c;
+  font-size: 13px;
+  font-style: italic;
+  line-height: 1.6;
+}
+
+/* Enhanced Button Styling */
+.glossary-upload .ant-btn {
+  border-radius: 8px !important;
+  font-weight: 500 !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.glossary-upload .ant-btn-danger {
+  background: linear-gradient(135deg, #ff4d4f 0%, #ff7875 100%);
+  border: none !important;
+  box-shadow: 0 2px 8px rgba(255, 77, 79, 0.3);
+}
+
+.glossary-upload .ant-btn-danger:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 77, 79, 0.4);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .glossary-upload .ant-upload-drag {
+    padding: 16px !important;
+  }
+
+  .glossary-upload .ant-upload-drag-icon {
+    font-size: 40px !important;
+  }
+
+  .glossary-upload .ant-upload-text {
+    font-size: 14px !important;
+  }
+
+  .glossary-upload .ant-upload-hint {
+    font-size: 12px !important;
+  }
+
+  .glossary-upload-info {
+    padding: 12px 16px;
+  }
+}
+
+/* Dark mode enhancements */
+@media (prefers-color-scheme: dark) {
+  .glossary-upload .ant-upload-drag {
+    background: linear-gradient(145deg, #2a2a2a 0%, #222 100%) !important;
+    border-color: #555 !important;
+  }
+
+  .glossary-upload .ant-upload-drag:hover {
+    background: linear-gradient(145deg, #333 0%, #2a2a2a 100%) !important;
+    border-color: #667eea !important;
+  }
+
+  .glossary-upload .ant-upload-text {
+    color: #fff !important;
+  }
+
+  .glossary-upload-info {
+    background: linear-gradient(135deg, #1a3d1e 0%, #163317 100%);
+    border-color: #2e5c30;
+  }
+}
