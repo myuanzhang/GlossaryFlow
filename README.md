@@ -159,10 +159,10 @@ python translate.py input.md output.md --provider qwen --glossary data/glossary.
 
 | Provider | 模型示例 | 说明 |
 |----------|---------|:-----|
-| OpenAI | GPT-4, GPT-3.5 |  |
-| DeepSeek | deepseek-chat, deepseek-reasoner |  |
-| Mimo | mimo-v2-flash |  |
-| Qwen | qwen-mt-flash, qwen3-max |  |
+| OpenAI | GPT-4, GPT-3.5 | 在线API |
+| DeepSeek | deepseek-chat, deepseek-reasoner | 在线API |
+| Mimo | mimo-v2-flash | 在线API |
+| Qwen | qwen-mt-flash, qwen3-max | 在线API |
 | Ollama | llama2, mistral | 本地部署 |
 
 🤖支持自定义所需大语言模型，集成新的 LLM 服务请参考[新增翻译服务商指南](docs/新增翻译服务商指南.md)。
@@ -189,7 +189,7 @@ glossary-flow/
 
 ## 📚 文档
 
-- [REST API 规范](docs/REST API 规范.md) - API 接口文档
+- [REST API 规范](docs/RESTAPI规范.md) - API 接口文档
 - [提示词管理系统指南](docs/提示词管理系统指南.md) - 优化翻译效果
 
 ## 🤝 贡献
