@@ -29,7 +29,7 @@
 
 1. **克隆项目**
 ```bash
-git clone https://github.com/myuanzhang/GlossaryFlow.git
+git clone
 cd GlossaryFlow
 ```
 
