@@ -1,4 +1,4 @@
-# REST API
+# REST API 规范
 
 本文档定义了连接前端 Web 界面与现有 Python TranslationAgent 契约的 REST API 层。所有 API 端点严格遵循现有数据契约和状态管理模式。
 
