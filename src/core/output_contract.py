@@ -178,6 +178,9 @@ class TranslationOutputContract:
         # Step 2: Remove thinking/reasoning tags if present (safe)
         cleaned = cls._remove_thinking_tags(cleaned)
 
+        # Step 2.5: Remove hunyuan-style <answer> tags (safe)
+        cleaned = cls._remove_answer_tags(cleaned)
+
         # Step 3: Detect and remove instruction echo at the START (safe, bounded)
         cleaned, removed_intro = cls._remove_instruction_echo_at_start(cleaned)
         if removed_intro:
@@ -375,7 +378,11 @@ class TranslationOutputContract:
             # Also accept any substantial text as content
             is_substantial = len(stripped) > 40
 
-            if is_valid_start or is_substantial:
+            # NEW: Accept first non-empty line as content if we've skipped everything else
+            # This handles cases where content starts with plain text (not headers)
+            is_first_content = (i == 0) or (content_start_idx == -1 and i < 3)
+
+            if is_valid_start or is_substantial or is_first_content:
                 content_start_idx = i
                 break
 
@@ -427,6 +434,37 @@ class TranslationOutputContract:
         lines = text.split('\n')
         cleaned_lines = [line for line in lines if line.strip()]
         return '\n'.join(cleaned_lines).strip()
+
+    @classmethod
+    def _remove_answer_tags(cls, text: str) -> str:
+        """
+        Remove hunyuan-style <answer> tags and related artifacts.
+
+        Some models (like hunyuan:7b) output:
+        - <answer> at the start
+        - </answer> at the end
+        - assistant> prefix
+
+        This method removes these tags safely.
+        """
+        # Remove <answer> opening tag
+        text = re.sub(r'^\s*<answer>\s*\n*', '', text, flags=re.MULTILINE)
+
+        # Remove </answer> closing tag
+        text = re.sub(r'\s*</answer>\s*$', '', text, flags=re.MULTILINE)
+
+        # Remove assistant> prefix (if present)
+        text = re.sub(r'^\s*assistant>\s*\n*', '', text, flags=re.MULTILINE | re.IGNORECASE)
+
+        # Clean up extra whitespace
+        lines = text.split('\n')
+        cleaned_lines = [line for line in lines if line.strip()]
+        result = '\n'.join(cleaned_lines).strip()
+
+        if result != text:
+            logger.info(f"Removed <answer> tags and assistant> prefix")
+
+        return result
 
     @classmethod
     def _remove_instruction_echo_at_start(cls, text: str) -> Tuple[str, bool]:
